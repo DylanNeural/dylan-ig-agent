@@ -20,7 +20,7 @@ Agent Instagram automatique — répond aux DMs de tes amis en ton nom, avec un 
 - Un compte Instagram Pro (Business ou Créateur)
 - Une Page Facebook liée à ce compte Instagram
 - Un compte sur [railway.app](https://railway.app)
-- Une clé API Anthropic → [console.anthropic.com](https://console.anthropic.com)
+- Une clé API Anthropic → [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
 
 ---
 
@@ -70,7 +70,7 @@ Remplis le fichier `.env` :
 META_VERIFY_TOKEN=un_token_que_tu_inventes_toi_meme
 META_APP_SECRET=ton_app_secret_meta
 META_PAGE_TOKEN=ton_page_access_token
-ANTHROPIC_API_KEY=ta_cle_anthropic
+OPENAI_API_KEY=ta_cle_openai
 PORT=3000
 ```
 
@@ -104,7 +104,7 @@ Dans Railway → ton projet → **Variables**, ajoute :
 | `META_VERIFY_TOKEN` | le token que t'as inventé |
 | `META_APP_SECRET` | ton app secret Meta |
 | `META_PAGE_TOKEN` | ton page access token |
-| `ANTHROPIC_API_KEY` | ta clé Anthropic |
+| `OPENAI_API_KEY` | ta clé OpenAI |
 
 Railway gère `PORT` automatiquement, pas besoin de l'ajouter.
 
@@ -182,5 +182,5 @@ Tu peux modifier :
 **L'agent ne répond pas**
 → Vérifie dans Meta que l'abonnement au champ `messages` est bien actif
 
-**Erreur 403 de l'API Anthropic**
-→ Ta clé `ANTHROPIC_API_KEY` est incorrecte ou tu n'as pas de crédits
+**Erreur 401 de l'API OpenAI**
+→ Ta clé `OPENAI_API_KEY` est incorrecte ou tu n'as pas de crédits

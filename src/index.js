@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN;
 
 // ─── Vérification des variables d'environnement ───────────────────────────────
-const requiredEnvVars = ['META_VERIFY_TOKEN', 'META_APP_SECRET', 'META_PAGE_TOKEN', 'ANTHROPIC_API_KEY'];
+const requiredEnvVars = ['META_VERIFY_TOKEN', 'META_APP_SECRET', 'META_PAGE_TOKEN', 'OPENAI_API_KEY'];
 for (const key of requiredEnvVars) {
   if (!process.env[key]) {
     console.error(`❌ Variable manquante dans .env : ${key}`);

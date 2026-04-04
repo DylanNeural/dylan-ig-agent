@@ -16,28 +16,27 @@ Règles importantes :
 
 async function generateReply(history, newMessage) {
   const messages = [
+    { role: 'system', content: SYSTEM_PROMPT },
     ...history,
     { role: 'user', content: newMessage }
   ];
 
   const response = await axios.post(
-    'https://api.anthropic.com/v1/messages',
+    'https://api.openai.com/v1/chat/completions',
     {
-      model: 'claude-sonnet-4-20250514',
+      model: 'gpt-4o',
       max_tokens: 300,
-      system: SYSTEM_PROMPT,
       messages
     },
     {
       headers: {
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
         'Content-Type': 'application/json'
       }
     }
   );
 
-  return response.data.content[0].text;
+  return response.data.choices[0].message.content;
 }
 
 module.exports = { generateReply };
