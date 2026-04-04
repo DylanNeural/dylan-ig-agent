@@ -4,7 +4,7 @@ const IG_API = 'https://graph.facebook.com/v19.0';
 
 async function sendMessage(recipientId, text) {
   await axios.post(
-    `${IG_API}/me/messages`,
+    `${IG_API}/${process.env.IG_USER_ID}/messages`,
     {
       recipient: { id: recipientId },
       message: { text }
@@ -18,7 +18,7 @@ async function sendMessage(recipientId, text) {
 async function markAsSeen(recipientId) {
   try {
     await axios.post(
-      `${IG_API}/me/messages`,
+      `${IG_API}/${process.env.IG_USER_ID}/messages`,
       {
         recipient: { id: recipientId },
         sender_action: 'mark_seen'
@@ -35,7 +35,7 @@ async function markAsSeen(recipientId) {
 async function showTyping(recipientId) {
   try {
     await axios.post(
-      `${IG_API}/me/messages`,
+      `${IG_API}/${process.env.IG_USER_ID}/messages`,
       {
         recipient: { id: recipientId },
         sender_action: 'typing_on'
