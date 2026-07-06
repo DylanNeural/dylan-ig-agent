@@ -2,7 +2,7 @@ require('dotenv').config();
 const crypto = require('crypto');
 const path = require('path');
 const express = require('express');
-const { generateReply } = require('./claude');
+const { generateReply, transcribeAudio } = require('./claude');
 const { sendMessage, markAsSeen, showTyping } = require('./instagram');
 const { getHistory, addMessage } = require('./memory');
 
@@ -71,14 +71,22 @@ app.post('/webhook', async (req, res) => {
       // Ignorer les messages envoyés PAR Dylan (echo)
       if (event.message?.is_echo) continue;
 
-      // Ignorer si pas de texte (stories, réactions, stickers...)
-      const incomingText = event.message?.text;
-      if (!incomingText) continue;
-
       const senderId = event.sender.id;
-      console.log(`📩 Message de ${senderId} : ${incomingText}`);
+      const audioAttachment = event.message?.attachments?.find(a => a.type === 'audio');
+
+      // Ignorer si pas de texte ni de vocal (stories, images, réactions, stickers...)
+      let incomingText = event.message?.text;
+      if (!incomingText && !audioAttachment) continue;
 
       try {
+        // 0. Transcrire le vocal si besoin
+        if (!incomingText && audioAttachment) {
+          incomingText = await transcribeAudio(audioAttachment.payload.url);
+          console.log(`🎙️  Vocal transcrit de ${senderId} : ${incomingText}`);
+        } else {
+          console.log(`📩 Message de ${senderId} : ${incomingText}`);
+        }
+
         // 1. Marquer comme lu
         await markAsSeen(senderId);
 

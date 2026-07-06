@@ -39,4 +39,26 @@ async function generateReply(history, newMessage) {
   return response.data.choices[0].message.content;
 }
 
-module.exports = { generateReply };
+async function transcribeAudio(audioUrl) {
+  const audioResponse = await axios.get(audioUrl, { responseType: 'arraybuffer' });
+  const blob = new Blob([audioResponse.data]);
+
+  const form = new FormData();
+  form.append('file', blob, 'voice.m4a');
+  form.append('model', 'whisper-1');
+
+  const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` },
+    body: form
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(`Transcription échouée : ${data.error?.message || response.statusText}`);
+  }
+
+  return data.text;
+}
+
+module.exports = { generateReply, transcribeAudio };
