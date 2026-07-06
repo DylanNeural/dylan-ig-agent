@@ -5,6 +5,7 @@ const express = require('express');
 const { generateReply, transcribeAudio } = require('./claude');
 const { sendMessage, markAsSeen, showTyping } = require('./instagram');
 const { getHistory, addMessage } = require('./memory');
+const { isEnabled, setEnabled } = require('./state');
 
 const app = express();
 app.use(express.json({
@@ -16,7 +17,7 @@ const PORT = process.env.PORT || 3000;
 const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN;
 
 // ─── Vérification des variables d'environnement ───────────────────────────────
-const requiredEnvVars = ['META_VERIFY_TOKEN', 'IG_APP_SECRET', 'IG_ACCESS_TOKEN', 'OPENAI_API_KEY'];
+const requiredEnvVars = ['META_VERIFY_TOKEN', 'IG_APP_SECRET', 'IG_ACCESS_TOKEN', 'OPENAI_API_KEY', 'ADMIN_TOKEN'];
 for (const key of requiredEnvVars) {
   if (!process.env[key]) {
     console.error(`❌ Variable manquante dans .env : ${key}`);
@@ -64,6 +65,11 @@ app.post('/webhook', async (req, res) => {
 
   const body = req.body;
   if (body.object !== 'instagram') return;
+
+  if (!isEnabled()) {
+    console.log('⏸️  Bot en pause — message ignoré');
+    return;
+  }
 
   for (const entry of body.entry || []) {
     for (const event of entry.messaging || []) {
@@ -122,6 +128,22 @@ app.post('/webhook', async (req, res) => {
 // ─── GET /health — health check ────────────────────────────────────────────────
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', agent: 'Dylan IG Agent', uptime: process.uptime() });
+});
+
+// ─── GET /api/status — état public (activé / en pause) ────────────────────────
+app.get('/api/status', (req, res) => {
+  res.json({ enabled: isEnabled() });
+});
+
+// ─── POST /api/toggle — activer/désactiver le bot (protégé) ───────────────────
+app.post('/api/toggle', (req, res) => {
+  if (req.get('authorization') !== `Bearer ${process.env.ADMIN_TOKEN}`) {
+    return res.sendStatus(401);
+  }
+  const enabled = !isEnabled();
+  setEnabled(enabled);
+  console.log(enabled ? '▶️  Bot réactivé' : '⏸️  Bot mis en pause');
+  res.json({ enabled });
 });
 
 // ─── Utilitaires ───────────────────────────────────────────────────────────────
