@@ -1,5 +1,6 @@
 require('dotenv').config();
 const crypto = require('crypto');
+const path = require('path');
 const express = require('express');
 const { generateReply } = require('./claude');
 const { sendMessage, markAsSeen, showTyping } = require('./instagram');
@@ -9,6 +10,7 @@ const app = express();
 app.use(express.json({
   verify: (req, res, buf) => { req.rawBody = buf; }
 }));
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 const PORT = process.env.PORT || 3000;
 const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN;
@@ -109,8 +111,8 @@ app.post('/webhook', async (req, res) => {
   }
 });
 
-// ─── GET / — health check ──────────────────────────────────────────────────────
-app.get('/', (req, res) => {
+// ─── GET /health — health check ────────────────────────────────────────────────
+app.get('/health', (req, res) => {
   res.json({ status: 'ok', agent: 'Dylan IG Agent', uptime: process.uptime() });
 });
 
