@@ -26,28 +26,25 @@ Agent Instagram automatique — répond aux DMs de tes amis en ton nom, avec un 
 
 ## Étape 1 — Créer l'app Meta
 
+Ce projet utilise le flow **API Instagram avec connexion Instagram** (pas de Page Facebook nécessaire).
+
 1. Va sur [developers.facebook.com](https://developers.facebook.com) → **Mes apps → Créer une app**
 2. Choisis **Business** comme type
 3. Donne-lui un nom (ex: "Dylan Agent")
-4. Une fois créée, dans le dashboard :
-   - **Ajouter un produit** → **Instagram** → Configurer
-   - **Ajouter un produit** → **Webhooks** → Configurer
+4. Une fois créée, ajoute le cas d'utilisation **"Gérer les messages et les contenus sur Instagram"**
 
-### Récupérer l'App Secret
-- Va dans **Paramètres → Avancés**
-- Copie l'**App Secret** → c'est ta variable `META_APP_SECRET`
+Dans **API Instagram → Configuration de l'API avec la connexion Instagram**, tu trouveras tout ce qu'il te faut :
 
-### Connecter ton compte Instagram
-- Va dans **Instagram → Paramètres de base**
-- Connecte ton compte Instagram Pro
-- Ajoute les permissions : `instagram_manage_messages` et `pages_messaging`
+### Récupérer la clé secrète Instagram
+- En haut de la page, section **Clé secrète Instagram** → clique **Afficher**
+- Copie la valeur → c'est ta variable `IG_APP_SECRET`
 
-### Générer le Page Access Token
-- Va dans **Instagram → Génération de token**
-- Sélectionne ta Page Facebook liée
-- Génère et copie le token → c'est ta variable `META_PAGE_TOKEN`
+### Générer le token d'accès
+- Section **2. Générez des tokens d'accès** → ajoute ton compte Instagram Pro (@dylan.kali)
+- Génère le token → c'est ta variable `IG_ACCESS_TOKEN`
+- Permissions nécessaires : `instagram_business_basic` et `instagram_business_manage_messages`
 
-> ⚠️ Le token expire. Pour un token permanent, utilise l'[outil de débogage de token](https://developers.facebook.com/tools/debug/accesstoken/) pour l'échanger contre un token longue durée.
+> ⚠️ Le token expire. Pour un token longue durée, utilise l'[outil de débogage de token](https://developers.facebook.com/tools/debug/accesstoken/) pour l'échanger.
 
 ---
 
@@ -68,8 +65,8 @@ Remplis le fichier `.env` :
 
 ```env
 META_VERIFY_TOKEN=un_token_que_tu_inventes_toi_meme
-META_APP_SECRET=ton_app_secret_meta
-META_PAGE_TOKEN=ton_page_access_token
+IG_APP_SECRET=ta_cle_secrete_instagram
+IG_ACCESS_TOKEN=ton_token_d_acces_instagram
 OPENAI_API_KEY=ta_cle_openai
 PORT=3000
 ```
@@ -102,8 +99,8 @@ Dans Railway → ton projet → **Variables**, ajoute :
 | Clé | Valeur |
 |-----|--------|
 | `META_VERIFY_TOKEN` | le token que t'as inventé |
-| `META_APP_SECRET` | ton app secret Meta |
-| `META_PAGE_TOKEN` | ton page access token |
+| `IG_APP_SECRET` | ta clé secrète Instagram |
+| `IG_ACCESS_TOKEN` | ton token d'accès Instagram |
 | `OPENAI_API_KEY` | ta clé OpenAI |
 
 Railway gère `PORT` automatiquement, pas besoin de l'ajouter.
@@ -117,7 +114,7 @@ Tu obtiens quelque chose comme `https://dylan-ig-agent.up.railway.app`
 
 ## Étape 4 — Connecter le webhook Meta
 
-1. Dans ton app Meta → **Webhooks → Instagram → Configurer**
+1. Dans ton app Meta → **API Instagram → Webhooks**
 2. Remplis :
    - **URL de rappel** : `https://TON_URL.railway.app/webhook`
    - **Token de vérification** : la valeur de `META_VERIFY_TOKEN`
@@ -177,7 +174,10 @@ Tu peux modifier :
 → Vérifie que `META_VERIFY_TOKEN` dans Railway est identique à ce que t'as mis dans Meta
 
 **"Token invalide" dans les logs**
-→ Ton `META_PAGE_TOKEN` a expiré, génère-en un nouveau dans Meta et mets à jour Railway
+→ Ton `IG_ACCESS_TOKEN` a expiré, génère-en un nouveau dans Meta et mets à jour Railway
+
+**Erreur 401 sur le webhook / "Signature webhook invalide"**
+→ Vérifie que `IG_APP_SECRET` dans Railway correspond bien à la clé secrète Instagram affichée dans Meta
 
 **L'agent ne répond pas**
 → Vérifie dans Meta que l'abonnement au champ `messages` est bien actif

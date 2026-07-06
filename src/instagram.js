@@ -1,37 +1,31 @@
 const axios = require('axios');
 
-const IG_API = 'https://graph.facebook.com/v19.0';
+const IG_API = 'https://graph.instagram.com/v21.0';
 
-function getIgId() {
-  const id = process.env.IG_USER_ID;
-  if (!id) throw new Error('IG_USER_ID manquant dans les variables d\'environnement');
-  return id;
+function authHeader() {
+  return { Authorization: `Bearer ${process.env.IG_ACCESS_TOKEN}` };
 }
 
 async function sendMessage(recipientId, text) {
   await axios.post(
-    `${IG_API}/${getIgId()}/messages`,
+    `${IG_API}/me/messages`,
     {
       recipient: { id: recipientId },
       message: { text }
     },
-    {
-      params: { access_token: process.env.META_PAGE_TOKEN }
-    }
+    { headers: authHeader() }
   );
 }
 
 async function markAsSeen(recipientId) {
   try {
     await axios.post(
-      `${IG_API}/${getIgId()}/messages`,
+      `${IG_API}/me/messages`,
       {
         recipient: { id: recipientId },
         sender_action: 'mark_seen'
       },
-      {
-        params: { access_token: process.env.META_PAGE_TOKEN }
-      }
+      { headers: authHeader() }
     );
   } catch (e) {}
 }
@@ -39,14 +33,12 @@ async function markAsSeen(recipientId) {
 async function showTyping(recipientId) {
   try {
     await axios.post(
-      `${IG_API}/${getIgId()}/messages`,
+      `${IG_API}/me/messages`,
       {
         recipient: { id: recipientId },
         sender_action: 'typing_on'
       },
-      {
-        params: { access_token: process.env.META_PAGE_TOKEN }
-      }
+      { headers: authHeader() }
     );
   } catch (e) {}
 }

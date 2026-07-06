@@ -1,22 +1,40 @@
 require('dotenv').config();
+const crypto = require('crypto');
 const express = require('express');
 const { generateReply } = require('./claude');
 const { sendMessage, markAsSeen, showTyping } = require('./instagram');
 const { getHistory, addMessage } = require('./memory');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({
+  verify: (req, res, buf) => { req.rawBody = buf; }
+}));
 
 const PORT = process.env.PORT || 3000;
 const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN;
 
 // ─── Vérification des variables d'environnement ───────────────────────────────
-const requiredEnvVars = ['META_VERIFY_TOKEN', 'META_APP_SECRET', 'META_PAGE_TOKEN', 'OPENAI_API_KEY'];
+const requiredEnvVars = ['META_VERIFY_TOKEN', 'IG_APP_SECRET', 'IG_ACCESS_TOKEN', 'OPENAI_API_KEY'];
 for (const key of requiredEnvVars) {
   if (!process.env[key]) {
     console.error(`❌ Variable manquante dans .env : ${key}`);
     process.exit(1);
   }
+}
+
+// ─── Vérification de la signature Meta (X-Hub-Signature-256) ──────────────────
+function isValidSignature(req) {
+  const signature = req.get('x-hub-signature-256');
+  if (!signature) return false;
+
+  const expected = 'sha256=' + crypto
+    .createHmac('sha256', process.env.IG_APP_SECRET)
+    .update(req.rawBody)
+    .digest('hex');
+
+  const a = Buffer.from(signature);
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
 // ─── GET /webhook — vérification Meta ─────────────────────────────────────────
@@ -36,6 +54,10 @@ app.get('/webhook', (req, res) => {
 
 // ─── POST /webhook — réception des messages ───────────────────────────────────
 app.post('/webhook', async (req, res) => {
+  if (!isValidSignature(req)) {
+    console.warn('⚠️  Signature webhook invalide — requête rejetée');
+    return res.sendStatus(401);
+  }
   res.sendStatus(200);
 
   const body = req.body;
